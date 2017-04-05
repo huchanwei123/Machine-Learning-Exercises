@@ -10,7 +10,12 @@ function [P] = estimate_train_accu(X, Y, lambda, b, type, Sdata)
     P=0.0;
     for i = Sdata+1:size(X,1)
         out = sum(Y(1:Sdata)'.*lambda.*K(i-Sdata,:)) - b;
-        if ((out*Y(i)) < 0)
+        %if ((out*Y(i)) < 0)
+        %    P = P + 1;
+        %end
+        if (out < 0 && test_label(i) ~= 0)
+            P = P + 1;
+        elseif (out > 0 && test_label(i) ~= 1)
             P = P + 1;
         end
     end  
