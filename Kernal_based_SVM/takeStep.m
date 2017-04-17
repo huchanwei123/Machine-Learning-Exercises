@@ -15,7 +15,7 @@ function [out, lambda, Error, b] = takeStep(i1, i2, lambda, Y, b, eps, Error, ul
     % check if alpha1 is on-bound --> [YES; NO] = [Evaluate E1 from SVM function; 
     % Take E1 from cache Error vector]
     if ((lambda1 < tol) || (lambda1 > ul(2)-tol))
-        E1 = f(Y,lambda,b,i1,K) - Y(i1);
+        E1 = learned_function(Y,lambda,b,i1,K) - Y(i1);
     else
         E1 = Error(i1);
     end
@@ -58,12 +58,12 @@ function [out, lambda, Error, b] = takeStep(i1, i2, lambda, Y, b, eps, Error, ul
     % SMO will work even when is negative, in which case the objective function W should be evaluated 
     % at each end of the line segment
         Lobj=-s*L+L-0.5*k11*(gamma-s*L)^2-.5*k22*L^2-s*k12*(gamma-s*L)*L-Y(i1)...
-            *(gamma-s*L)*(f(Y,lambda,b,i1,K)+b-Y(i1)*lambda1*k11-Y(i2)*lambda2*K(i2,i1))...
-            -Y(2)*L*(f(Y,lambda,b,i2,K)+b-Y(i1)*lambda1*k12-Y(i2)*lambda2*k22);
+            *(gamma-s*L)*(learned_function(Y,lambda,b,i1,K)+b-Y(i1)*lambda1*k11-Y(i2)*lambda2*K(i2,i1))...
+            -Y(2)*L*(learned_function(Y,lambda,b,i2,K)+b-Y(i1)*lambda1*k12-Y(i2)*lambda2*k22);
      
         Hobj=-s*H+H-0.5*k11*(gamma-s*H)^2-.5*k22*H^2-s*k12*(gamma-s*H)*H-Y(i1)...
-            *(gamma-s*H)*(f(Y,lambda,b,i1,K)+b-Y(i1)*lambda1*k11-Y(i2)*lambda2*K(i2,i1))...
-            -Y(2)*H*(f(Y,lambda,b,i2,K)+b-Y(i1)*lambda1*k12-Y(i2)*lambda2*K(i2,i1));
+            *(gamma-s*H)*(learned_function(Y,lambda,b,i1,K)+b-Y(i1)*lambda1*k11-Y(i2)*lambda2*K(i2,i1))...
+            -Y(2)*H*(learned_function(Y,lambda,b,i2,K)+b-Y(i1)*lambda1*k12-Y(i2)*lambda2*K(i2,i1));
         
         if Lobj < Hobj-eps
             a2 = L;
@@ -89,6 +89,8 @@ function [out, lambda, Error, b] = takeStep(i1, i2, lambda, Y, b, eps, Error, ul
     
     % evaluate threshold or b AND updating the lagrange multipliers and
     % caches errors
+    % Although we didn't mention how to update b in Professor's slide, I
+    % just follow the 'Original Work of Microsoft', which is performed by Platt's.
     b1 = E1 + Y(i1) * (a1-lambda1) * k11 + Y(i2) * (a2-lambda2) * k12 + b;
     % b is b_old
     b2 = E2 + Y(i1) * (a1-lambda1) * k12 + Y(i2) * (a2-lambda2) * k22 + b;

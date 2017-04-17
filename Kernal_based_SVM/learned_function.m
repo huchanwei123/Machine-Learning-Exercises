@@ -1,4 +1,4 @@
-function out=f(Y,lambda,b,id,Kernel)
+function out=learned_function(Y,lambda,b,id,Kernel)
 
     out = sum(Y'.*lambda.*Kernel(id,:)) - b;
     

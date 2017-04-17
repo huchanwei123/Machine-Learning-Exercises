@@ -5,7 +5,7 @@ function [out, lambda, b, Error] = examineExample(i2, Y, lambda, tol, ul, Error,
     % check if lambda2 is on-bound-->[YES; NO]=[Evaluate E2 from SVM function; 
     % Take E2 from cache Error vector]
     if ((lambda2 < tol) || (lambda2 > ul(2)-tol))
-        E2 = f(Y,lambda,b,i2,K) - Y(i2);
+        E2 = learned_function(Y,lambda,b,i2,K) - Y(i2);
     else
         E2 = Error(i2);
     end
@@ -28,13 +28,14 @@ function [out, lambda, b, Error] = examineExample(i2, Y, lambda, tol, ul, Error,
                 return;
             end            
         end
+    
     % loop over all non-zero and non-C lambda, starting at randmom points
     if (~isempty(tmp))
         startPoint = randi(length(tmp));
     % reorder the tmp matrix
         tmp=[tmp(startPoint:end) tmp(1:startPoint-1)];
             for i1=tmp
-                 [check,lambda,Error,b]=takeStep(i1,i2,lambda,Y,b,eps,Error,ul,K,E2,tol);
+                 [check, lambda, Error, b] = takeStep(i1,i2,lambda,Y,b,eps,Error,ul,K,E2,tol);
                 if check
                     out = 1;
                     return
