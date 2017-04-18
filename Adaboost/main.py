@@ -94,11 +94,12 @@ with open(str(N_fold) + '_fold_output_AdaBoost_hypothesis_header.csv', 'w', newl
     w.writerow(['iteration_index','attribute_index','threshold', 'direction', 'boosting_parameter'])
     w.writerows(out_hypothesis)
 
-train_accu = adaboost.adaClassify(train_data_, train_label_, 'testing', best_hypothesis)
+train_accu, _ = adaboost.adaClassify(train_data_, train_label_, 'testing', best_hypothesis)
 test_accu, predict_output = adaboost.adaClassify(test_data, test_label, 'testing', best_hypothesis)
+predict_output = predict_output.tolist()
 with open(str(N_fold) + '_fold_predict_output', 'w', newline='') as f:
-    w = csv.writer(f)
-    w.writerows(predict_output)
+    w = csv.writer(f, delimiter=',')
+    w.writerow(predict_output)
 
 print('Training Accuracy =', train_accu, '%')
 print('Testing Accuracy =', test_accu, '%')
