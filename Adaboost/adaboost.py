@@ -24,14 +24,15 @@ def load_data(DATA_PATH):
     unique_label = np.unique(label)
     label[label == unique_label[0]] = -1
     label[label == unique_label[1]] = 1
+    print('Class label mapping:', unique_label[0], '-> -1,', unique_label[1], '-> 1')
     return data, label
 
 def stump_classify(data, which_attr, threshold):
-    output = np.ones(data.shape[0])
-    output[data[:, which_attr] <= threshold] = -1
+    output = np.ones(data.shape[0])*(-1)
+    output[data[:, which_attr] >= threshold] = 1
     return output
 
-def build_stump(data, label, D_weight):
+def build_stump(data, label, D_weight, iter_):
     feature_num, feature_size = data.shape
     Steps = 10.0
     dim_list = []
@@ -52,8 +53,10 @@ def build_stump(data, label, D_weight):
             if weight_error < minError:
                 minError = weight_error
                 bestClassEst = predict_val.copy()
+                bestStump['iter'] = iter_
                 bestStump['dim'] = i
                 bestStump['thresh'] = threshold
+                bestStump['inequal'] = 1
 
     return bestStump, minError, bestClassEst
 
@@ -63,7 +66,7 @@ def Adaboost(data, label, phase, Iteration):
     bestStumpArr = []
     aggClassEst = np.zeros(feature_num)
     for i in range(Iteration):
-        bestStump, error, bestClassEst = build_stump(data, label, D)
+        bestStump, error, bestClassEst = build_stump(data, label, D, i+1)
         alpha = float(0.5 * math.log((1.0 - error)/max(error, 1e-16)))
         bestStump['alpha'] = alpha
         bestStumpArr.append(bestStump)
@@ -98,6 +101,6 @@ def adaClassify(data, label, phase, classifierArr):
     if(phase == 'validation'):
         return errorRate
     elif(phase == 'testing'):
-        return accuracy
+        return accuracy, predict_output
     else:
         return 0

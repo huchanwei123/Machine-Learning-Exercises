@@ -1,6 +1,7 @@
 import csv
 import pdb
 import os, sys
+import time
 import math
 import numpy as np
 import argparse
@@ -66,7 +67,12 @@ test_data, test_label = adaboost.load_data(Test_DATA_PATH)
 pool = mp.Pool(args.core_num)
 print('Using', args.core_num, 'CPU cores to run !!')
 _iter = range(1, validation_iter + 1)
+start_time = time.time()
 CV_error_list = pool.map(cross_validation, _iter)
+with open(str(N_fold)+'_fold_find_optimal_T.csv', 'w', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerows(CV_error_list)
+
 min_error = math.inf
 best_T = 0
 for i in range(1, validation_iter+1):
@@ -75,10 +81,24 @@ for i in range(1, validation_iter+1):
 		best_T = CV_error_list[i-1][0]
 
 print('Choose optimal T =', best_T, '\n')
+print('Time cost for cross-validation =', (time.time() - start_time)/60, 'mins')
 
 # start our Adaboost 
 best_hypothesis = adaboost.Adaboost(train_data_, train_label_, 'training', best_T)
+out_hypothesis = []
+for i in range(best_T):
+    out_hypothesis.append([best_hypothesis[i]['iter'], best_hypothesis[i]['dim'], best_hypothesis[i]['thresh'], best_hypothesis[i]['inequal'] ,best_hypothesis[i]['alpha']])
+
+with open(str(N_fold) + '_fold_output_AdaBoost_hypothesis_header.csv', 'w', newline='') as f:
+    w = csv.writer(f)
+    w.writerow(['iteration_index','attribute_index','threshold', 'direction', 'boosting_parameter'])
+    w.writerows(out_hypothesis)
+
 train_accu = adaboost.adaClassify(train_data_, train_label_, 'testing', best_hypothesis)
-test_accu = adaboost.adaClassify(test_data, test_label, 'testing', best_hypothesis)
+test_accu, predict_output = adaboost.adaClassify(test_data, test_label, 'testing', best_hypothesis)
+with open(str(N_fold) + '_fold_predict_output', 'w', newline='') as f:
+    w = csv.writer(f)
+    w.writerows(predict_output)
+
 print('Training Accuracy =', train_accu, '%')
 print('Testing Accuracy =', test_accu, '%')
